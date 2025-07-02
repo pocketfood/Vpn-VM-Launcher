@@ -44,7 +44,34 @@ Download QEMU for Windows from:
 
 Extract the .exe and .dll files into the `qemu/` directory at the root of this project.
 
+---
+
+## 🐧 Debian Netinst ISO (Optional)
+
+If you need a minimal Debian installation image for your virtual machine, you can download the official **Debian netinst ISO**:
+
+➡️ [Download Debian netinst ISO](https://www.debian.org/distrib/netinst)
+
+This image is ideal for small VMs, as it only contains the installer and fetches the rest of the packages from the internet during setup.
+
+Once downloaded, place the `.iso` file in your `vm-images/` directory (or wherever you keep your VM assets), and update your `config.json` or launch script to boot from it.
+
 ```bash
-git clone <repository-url>
+vm-images/
+├── debian-12.6.0-amd64-netinst.iso
+├── your-vm-disk.qcow2
+```
+
+---
+
+
+## Final
+
+```bash
+git clone 
 cd vpn-vm-launcher
 npm install
+
+
+
+
