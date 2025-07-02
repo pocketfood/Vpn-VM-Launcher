@@ -72,16 +72,21 @@ git clone
 cd vpn-vm-launcher
 npm install
 
-## Building
 
-# windows
+## installing an image please use install.js
+node install
+
+
+## Running / Testing an img 
+node index
+
+
+## Building for windows
+
 npm build = pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug
 
+
+
+
 ```
-
-
-
-
-
-
 
