@@ -72,6 +72,16 @@ git clone
 cd vpn-vm-launcher
 npm install
 
+## Building
+
+# windows
+npm build = pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug
+
+```
+
+
+
+
 
 
 
