@@ -1,0 +1,25 @@
+{
+  "name": "vpn-vm-launcher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "bin": "index.js",
+  "pkg": {
+    "assets": [
+      "qemu/*"
+    ],
+    "windows": {
+      "console": false
+    },
+    "icon": ""
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build": "pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug --win-console=false",
+    "build:console": "pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug --win-console=true",
+    "build:hidden": "pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug --win-console=false"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pkg": "^5.8.0"
+  }
+}
