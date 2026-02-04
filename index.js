@@ -2,13 +2,29 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+const defaultConfig = {
+    showConsole: false,
+    memoryMB: 12288,
+    cpus: 12,
+    diskPath: 'deb.img',
+    diskFormat: 'qcow2',
+    useIso: false,
+    isoPath: 'debian-13.3.0-amd64-netinst.iso',
+    compatMode: false,
+    machine: 'pc',
+    display: 'sdl',
+    accel: 'whpx',
+    cpu: 'max',
+};
+
 // Load config
 let config;
 try {
-    config = JSON.parse(fs.readFileSync('config.json'));
+    const userConfig = JSON.parse(fs.readFileSync('config.json'));
+    config = { ...defaultConfig, ...userConfig };
 } catch (error) {
     console.error('Could not read config.json, using default settings.');
-    config = { showConsole: false }; // Default value
+    config = { ...defaultConfig };
 }
 
 // Define paths
@@ -17,11 +33,11 @@ const qemuPath = path.join('qemu', 'qemu-system-x86_64.exe'); // Relative path t
 // Disk Image is for already finished distros, iso is if you want to install a new image.
 // Remeber if you plan on installing a new image you need to have a blank .img file using (qemu-img create -f qcow2 c://path//to/file.img 20G)
 
-const imgPath = path.resolve('deb.img'); // Absolute path to disk image
-//const isoPath = path.resolve('debian-12.0.0-amd64-netinst.iso'); // Absolute path to ISO
+const imgPath = path.resolve(config.diskPath); // Absolute path to disk image
+const isoPath = path.resolve(config.isoPath); // Absolute path to ISO
 
 // Name for the title
-const vmName = 'VPN VM LAUNCHER';
+const vmName = 'VPN-VM-LAUNCHER';
 
 function launchVM() {
     // Check if QEMU executable exists
@@ -31,23 +47,54 @@ function launchVM() {
     }
 
     console.log(`Using QEMU Path: ${qemuPath}`);
+    if (!fs.existsSync(imgPath)) {
+        console.error(`Disk image not found at ${imgPath}`);
+        return;
+    }
+
+    if (config.useIso && !fs.existsSync(isoPath)) {
+        console.error(`ISO not found at ${isoPath}`);
+        return;
+    }
+
     console.log(`Using Disk Image Path: ${imgPath}`);
-    //console.log(`Using ISO Path: ${isoPath}`); // Log the ISO path
+    if (config.useIso) {
+        console.log(`Using ISO Path: ${isoPath}`);
+    }
 
     // Define the arguments for the QEMU process
+    const netDevArgs = [
+        '-netdev', 'user,id=net0,hostfwd=tcp::8080-:9090,hostfwd=tcp::22-:22',
+        '-device', `${config.compatMode ? 'rtl8139' : 'virtio-net-pci'},netdev=net0`,
+    ];
+
+    const diskArg = config.compatMode
+        ? `file=${imgPath},if=ide,format=${config.diskFormat},cache=writeback`
+        : `file=${imgPath},if=virtio,format=${config.diskFormat},cache=writeback,discard=unmap`;
+
+    const videoArgs = config.compatMode
+        ? ['-vga', 'std']
+        : ['-device', 'virtio-vga'];
+
     const args = [
-        '-m', '8192',
-        '-smp', '8', 
-        '-hda', imgPath,
-  //      '-cdrom', isoPath, // Include the ISO argument
-        '-boot', 'd', 
-        '-net', 'nic',
-        '-net', 'user,hostfwd=tcp::8080-:9090,hostfwd=tcp::22-:22',
+        '-accel', config.accel,
+        '-machine', config.machine,
+        '-cpu', config.cpu,
+        '-m', String(config.memoryMB),
+        '-smp', String(config.cpus),
+        '-drive', diskArg,
+        ...(config.useIso ? ['-cdrom', isoPath] : []),
+        '-boot', config.useIso ? 'd' : 'c',
+        ...netDevArgs,
+        ...videoArgs,
+        '-display', config.display,
         '-name', vmName,
     ];
 
     // If showConsole is false, set the window to hidden
-    const spawnOptions = config.showConsole ? { shell: true } : { detached: true, stdio: 'ignore' };
+    const spawnOptions = config.showConsole
+        ? { windowsHide: false }
+        : { detached: true, stdio: 'ignore', windowsHide: true };
 
     const qemuProcess = spawn(qemuPath, args, spawnOptions);
 
