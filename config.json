@@ -1,3 +1,14 @@
 {
-    "showConsole": false
+  "showConsole": true,
+  "useIso": false,
+  "isoPath": "debian-13.3.0-amd64-netinst.iso",
+  "diskPath": "deb.img",
+  "memoryMB": 4096,
+  "cpus": 2,
+  "diskFormat": "qcow2",
+  "compatMode": true,
+  "machine": "pc",
+  "display": "sdl",
+  "accel": "whpx,kernel-irqchip=off",
+  "cpu": "qemu64"
 }
