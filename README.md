@@ -1,92 +1,40 @@
-# VPN Virtual Machine Launcher
+## Requirements for building
+- qemu for the emulation/virutal box
+- Windows Hypervisor Platform or Hyper-V enabled (for WHPX acceleration)
+- nodejs for packaging 
+- iso image of distro (This is when you are installing a distro)
+- Disk.img for the installation (make from qemu-img create -f qcow2)
+- pkg for compiling into windows
+- Absolute paths for specificing where the files are
 
-A simple Node.js-based launcher for a preconfigured QEMU virtual machine with VPN routing.
-
-> ⚠️ This project does **not include QEMU binaries** due to licensing. See the **QEMU Setup** section below for instructions on installing them manually or via script.
-
----
-
-## 🚀 Features
-- Launches a secure virtual machine using QEMU
-- Routes VM traffic through a VPN interface
-- Built-in Node.js control interface
-- Minimal GUI / CLI for selecting VM profiles
-
----
-
-## 📦 Requirements
-- Node.js (v18+ recommended)
-- A compatible VPN client (e.g., OpenVPN or WireGuard)
-- Virtual disk image (e.g., `.qcow2`)
-- QEMU (manually installed or fetched via script)
-- ISO image of distro (This is when you are installing a distro)
-- Disk.img for the installation (make from `qemu-img create -f qcow2`)
-- PKG for compiling into Windows and other systems
-- Absolute paths for specifying where the files are
-
-## 📁 File structure
-When exporting and distributing, the directory must have:
+## File structure
+When exporting and distributing directory must have 
 1. deb.img
-2. QEMU
+2. qemu directory
 3. config.json
-4. debian-12.0.0-amd64-netinst.iso
+4. ISO file specified by config.json (for installs)
 
 ---
 
-## 🛠️ Installation
-### QEMU Setup
-This project depends on QEMU to launch virtual machines. Due to licensing terms (GPLv2), QEMU binaries are not included in this repository.
+## Config
+The launcher reads `config.json` and uses these keys:
+- `showConsole`: Show QEMU output window.
+- `useIso`: `true` to boot from ISO for installs.
+- `isoPath`: Path to the installer ISO.
+- `diskPath`: Path to the VM disk image.
+- `memoryMB`: RAM in MB.
+- `cpus`: vCPU count.
+- `diskFormat`: Disk format, default `qcow2`.
+- `compatMode`: `true` to use legacy devices (IDE disk, RTL8139 NIC, standard VGA). Helpful if WHPX has MSI/virtio issues.
+- `machine`: QEMU machine type, default `pc` (i440fx).
+- `display`: Display backend, default `sdl` (often smoother than `gtk` on Windows).
+- `accel`: Acceleration backend, default `whpx`. You can add options like `whpx,kernel-irqchip=off` if WHPX MSI injection fails.
+- `cpu`: CPU model, default `max` (WHPX does not accept `host`).
 
-#### Option 1: Install QEMU manually
-Download QEMU for Windows from:
-- [QEMU for Windows](https://qemu.weilnetz.de/)
-- [QEMU Downloads](https://www.qemu.org/download/)
+## Building
 
-Extract the .exe and .dll files into the `qemu/` directory at the root of this project.
-
----
-
-## 🐧 Debian Netinst ISO (Optional)
-
-If you need a minimal Debian installation image for your virtual machine, you can download the official **Debian netinst ISO**:
-
-➡️ [Download Debian netinst ISO](https://www.debian.org/distrib/netinst)
-
-This image is ideal for small VMs, as it only contains the installer and fetches the rest of the packages from the internet during setup.
-
-Once downloaded, place the `.iso` file in your `vm-images/` directory (or wherever you keep your VM assets), and update your `config.json` or launch script to boot from it.
-
-```bash
-vm-images/
-├── debian-12.6.0-amd64-netinst.iso
-├── your-vm-disk.qcow2
-```
-
----
-
-
-## Final
-
-```bash
-git clone 
-cd vpn-vm-launcher
-npm install
-
-
-## installing an image please use install.js
-node install
-
-
-## Running / Testing an img 
-node index
-
-
-## Building for windows
-
+### old
 npm build = pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug
 
-
-
-
-```
-
+### New
+npx pkg . --targets node14-win-x64 --output vpn-vm-launcher.exe --debug --win-console=false
